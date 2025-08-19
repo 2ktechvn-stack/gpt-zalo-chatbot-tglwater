@@ -1,0 +1,11 @@
+[Unit]
+Description=uWSGI instance to serve gpt-zalo-chatbot-tglwater
+After=network.target
+
+[Service]
+WorkingDirectory=/home/.../gpt-zalo-chatbot-tglwater
+Environment="PATH=/home/.../gpt-zalo-chatbot-tglwater/.venv/bin"
+ExecStart=/home/.../gpt-zalo-chatbot-tglwater/.venv/bin/uwsgi --ini myproject.ini
+
+[Install]
+WantedBy=multi-user.target
