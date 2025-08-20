@@ -36,3 +36,4 @@ Exit checklist:
 References:
 - https://developers.zalo.me/docs/official-account/webhook/quan-ly/su-kien-nguoi-dung-dong-y-chia-se-thong-tin (Có thể lấy SDT user khi họ đã ấn follow)
 - https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uswgi-and-nginx-on-ubuntu-18-04
+- https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uwsgi-and-nginx-on-ubuntu-22-04#step-4-configuring-uwsgi

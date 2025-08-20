@@ -10,6 +10,7 @@ def worker():
     '''
     while True:
         user_id, text = msg_queue.get()
+        logger.info('Get message from queue')
 
         if user_id is None:  # shutdown signal
             break
@@ -17,16 +18,19 @@ def worker():
         # Call OpenAI
         try:
             ####################### REPLACE THIS BLOCK AFTER GETTING OPENAI KEY #######################
+            logger.info('Call OpenAI')
             response = client.chat(model='deepseek-r1:8b', options={'num_predict': 100}, messages=[   #
                 {                                                                                     #
                     'role': 'user',                                                                   #
                     'content': text,                                                                  #
                 },                                                                                    #
             ])                                                                                        #
-            reply = response['message']['content']                                                    #
+            reply = response['message']['content']  
+            logger.info('Get response successfully')                                                  #
             ###########################################################################################
         except Exception as e:
             reply = f"Error: {str(e)}"
+            logger.error(e)
         
         send_message_to_zalo(user_id, reply, config)
         msg_queue.task_done()
