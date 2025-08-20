@@ -7,7 +7,7 @@ User=root
 Group=www-data
 WorkingDirectory=/root/gpt-zalo-chatbot-tglwater
 Environment="PATH=/usr/local/bin"
-ExecStart=/usr/local/bin/uwsgi --ini myproject.ini
+ExecStart=/usr/local/bin/uwsgi --ini server.ini
 
 [Install]
 WantedBy=multi-user.target
