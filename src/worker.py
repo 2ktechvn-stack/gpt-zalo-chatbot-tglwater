@@ -11,10 +11,6 @@ def worker():
     while True:
         user_id, text = msg_queue.get()
 
-        ### Only send to dev, remove in production ###
-        user_id = '2656106822398634139'
-        ##############################################
-
         if user_id is None:  # shutdown signal
             break
         

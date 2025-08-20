@@ -39,7 +39,7 @@ def get_zalo_oa_token(config):
     
     try:
         response = requests.post('https://oauth.zaloapp.com/v4/oa/access_token', headers=headers, data=data)
-        print(response.content)
+        logger.info(response.content)
         return response.json()
     except Exception as e:
         logger.error(e)
@@ -67,7 +67,7 @@ def send_message_to_zalo(user_id, reply, config):
         Send message to user via Zalo OA
         Reference: https://developers.zalo.me/docs/official-account/tin-nhan/tin-tu-van/gui-tin-tu-van-dang-van-ban
     '''
-    print(user_id, reply)
+    logger.info("Send reply to " + user_id)
     while True:
         response = requests.post(
             'https://openapi.zalo.me/v3.0/oa/message/cs', 
@@ -84,7 +84,8 @@ def send_message_to_zalo(user_id, reply, config):
                 },
             }
         )
-        print(response.status_code, response.content)
+        logger.info(response.status_code)
+        logger.info(response.content)
         if response.json()['error'] == -216:
             config = check_zalo_oa_token(config, refresh=True)
         else:

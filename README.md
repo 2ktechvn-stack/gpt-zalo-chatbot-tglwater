@@ -28,7 +28,7 @@ Requirements:
 - Copy chatbot.service to /etc/systemd/system
 
 Exit checklist:
-- Gửi riêng file config.py
+- Gửi riêng file config.yaml
 - Transfer app trên Zalo cho owner (thêm owner làm amin, đổi sdt và email, exit)
 - Merge dev -> main
 - Exit github
