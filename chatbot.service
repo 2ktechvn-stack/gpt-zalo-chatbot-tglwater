@@ -5,9 +5,9 @@ After=network.target
 [Service]
 User=root
 Group=www-data
-WorkingDirectory=/root/gpt-zalo-chatbot-tglwater
+WorkingDirectory=/app/gpt-zalo-chatbot-tglwater
 Environment="PATH=/usr/local/bin"
-ExecStart=/usr/local/bin/uwsgi --ini server.ini
+ExecStart=/usr/local/bin/uwsgi --ini chatbot.ini
 
 [Install]
 WantedBy=multi-user.target

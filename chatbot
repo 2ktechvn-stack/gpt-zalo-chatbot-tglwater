@@ -1,0 +1,9 @@
+server {
+    listen 80;
+    server_name api.tglwater.com;
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass unix:/app/gpt-zalo-chatbot-tglwater/chatbot.sock;
+    }
+}

@@ -33,9 +33,9 @@ def worker():
 
 
 ### REPLACE THIS BLOCK AFTER GETTING OPENAI KEY ###
-logger.info("Initialize connection to AI Server")
+logger.info("Initialize connection to AI Server") #
 client = Client(                                  #
-  host='http://localhost:11434'                   #
+  host='http://27.74.240.106:11434'               #
 )                                                 #
 ###################################################
 
