@@ -1,6 +1,10 @@
 import yaml
 import requests
 from src.logger import logger
+import sqlite3
+from datetime import datetime
+
+DB_FILE = "threads.db"
 
 def load_config():
     # Load YAML file
@@ -91,3 +95,40 @@ def send_message_to_zalo(user_id, reply, config):
         else:
             break
         
+def init_db():
+    """Initialize the database and create table if not exists."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS threads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            thread_id TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            time_created TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def save_thread(thread_id: str, user_id: str):
+    """Insert a new thread into the database with current timestamp."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO threads (thread_id, user_id, time_created)
+        VALUES (?, ?, ?)
+    """, (thread_id, user_id, datetime.utcnow().isoformat()))
+    conn.commit()
+    conn.close()
+
+def get_threads(user_id: str = None):
+    """Retrieve all threads, or only those belonging to a specific user."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    if user_id:
+        cursor.execute("SELECT thread_id, user_id, time_created FROM threads WHERE user_id = ?", (user_id,))
+    else:
+        cursor.execute("SELECT thread_id, user_id, time_created FROM threads")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
