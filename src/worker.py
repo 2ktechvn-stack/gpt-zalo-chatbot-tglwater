@@ -1,13 +1,21 @@
 import queue
-from ollama import Client
 from src.utils import *
-from pathlib import Path
 from src.logger import logger
+from openai import OpenAI
+import re
 
 def worker():
     '''
         Worker that processes waiting message
     '''
+
+    config = load_config()
+    config = check_zalo_oa_token(config, False)
+    init_db()
+
+    logger.info("Initialize connection to AI Server") 
+    client = OpenAI(api_key=config['OPENAI_API_KEY'])
+
     while True:
         user_id, text = msg_queue.get()
         logger.info('Get message from queue')
@@ -17,17 +25,36 @@ def worker():
         
         # Call OpenAI
         try:
-            ####################### REPLACE THIS BLOCK AFTER GETTING OPENAI KEY #######################
-            logger.info('Call OpenAI')
-            response = client.chat(model='deepseek-r1:8b', options={'num_predict': 100}, messages=[   #
-                {                                                                                     #
-                    'role': 'user',                                                                   #
-                    'content': text,                                                                  #
-                },                                                                                    #
-            ])                                                                                        #
-            reply = response['message']['content']  
-            logger.info('Get response successfully')                                                  #
-            ###########################################################################################
+            # Check if user_id has in database, if not, create thread and insert
+            if not get_threads(user_id):
+                thread = client.beta.threads.create()
+                logger.info(f"Create thread id {thread.id} for user {user_id}")
+                save_thread(thread.id, user_id)
+            
+            # Get thread_id from database
+            thread_id = get_threads(user_id)[0][0]
+            
+            logger.info('Create message object')
+            message = client.beta.threads.messages.create(
+                thread_id=thread_id,
+                role='user',
+                content=text
+            )
+            
+            logger.info("Get response")
+            run = client.beta.threads.runs.create_and_poll(
+                thread_id=thread_id, assistant_id=config['ASSISTANT_ID']
+            )
+
+            messages = list(client.beta.threads.messages.list(thread_id=thread_id, run_id=run.id))
+            message_content = messages[0].content[0].text
+
+            reply = message_content.value
+            reply = re.sub(r"\s*\[\d+\]\s*", " ", reply)
+
+            # Normalize spaces (avoid double spaces after removal)
+            reply = re.sub(r"\s{2,}", " ", reply).strip()
+
         except Exception as e:
             reply = f"Error: {str(e)}"
             logger.error(e)
@@ -36,14 +63,7 @@ def worker():
         msg_queue.task_done()
 
 
-### REPLACE THIS BLOCK AFTER GETTING OPENAI KEY ###
-logger.info("Initialize connection to AI Server") #
-client = Client(                                  #
-  host='http://27.74.240.106:11434'               #
-)                                                 #
-###################################################
+
 
 logger.info("Initialize queue")
 msg_queue = queue.Queue()
-config = load_config()
-config = check_zalo_oa_token(config, False)
