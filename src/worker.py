@@ -25,11 +25,13 @@ def worker():
         
         if check_if_user_send_admin_command(text, user_id, config):
             logger.info("User send admin command")
+            msg_queue.task_done()
             continue
 
         # Check if user send phone number
         if check_if_user_send_phone_number(text, user_id, config):
             logger.info("User send phone number")
+            msg_queue.task_done()
             continue
 
         # Call OpenAI
