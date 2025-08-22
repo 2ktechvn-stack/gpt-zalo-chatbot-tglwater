@@ -38,7 +38,7 @@ def webhook():
                 return 'OK', 200
 
             # Check if user send phone number
-            if check_if_user_send_phone_number(user_id, message, config):
+            if check_if_user_send_phone_number(message, user_id, config):
                 logger.info("User send phone number")
                 return 'OK', 200
 
