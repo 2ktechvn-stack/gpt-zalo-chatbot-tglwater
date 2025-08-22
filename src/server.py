@@ -16,30 +16,30 @@ def webhook():
     logger.info(data)
     event_name = data['event_name']
 
-    if event_name not in ['user_send_text', 'anonymous_send_text']:
-        logger.info('Event name not in [user_send_text, anonymous_send_text]')
-        return 'OK', 200
-    
     if event_name in ['user_send_text', 'anonymous_send_text']:
         try:
             user_id = data['sender']['id']
 
             ### Only send to dev, remove in production ###
             if user_id not in ['8174221521790538039', '2656106822398634139']:
+                logger.info("Return 200 OK")
                 return 'OK', 200
             logger.info("user is dev")
             ##############################################
             
-            # Check for admin commands
             message = data['message']['text']
 
             # Đem vào hàng chờ để đảm bảo thời gian phản hồi theo yêu cầu của Zalo
             msg_queue.put((user_id, message))
             logger.info("Put message to queue")
-            return 'OK', 200
         except Exception as e:
             logger.error(e)
             raise e
+    else:
+        logger.info('Event name not in [user_send_text, anonymous_send_text]')
+
+    logger.info("Return 200 OK")
+    return 'OK', 200
 
 @app.route('/zalo_verifierJ8BkCwxqG0zqtzSEz_jR6GxQ_KBYh2eVCZKp.html', methods=['GET'])
 def authorize_zalo():
