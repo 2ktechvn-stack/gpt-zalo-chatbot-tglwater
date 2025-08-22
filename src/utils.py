@@ -170,7 +170,8 @@ def get_threads(user_id: str = None):
 
 def check_if_user_send_phone_number(message: str, user_id: str, config: dict):
     phone_regex = re.compile(r"(?:\+84|(?:\+?840)|0)(3|5|7|8|9)(?:[\s\.\-]?\d){8}")
-    if phone_regex.match(message):
+    match = phone_regex.search(message)
+    if match:
         # Send message to employee
         employees = get_employees()
         for employee in employees:
