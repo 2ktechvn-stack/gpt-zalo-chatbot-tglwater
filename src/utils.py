@@ -114,6 +114,41 @@ def init_db():
             user_id TEXT UNIQUE NOT NULL
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_phone_number (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT UNIQUE NOT NULL,
+            phone_number TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def get_user_phone_numbers():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id, phone_number FROM user_phone_number")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+def save_user_phone_number(user_id: str, phone_number: str):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO user_phone_number (user_id, phone_number)
+        VALUES (?, ?)
+    """, (user_id, phone_number))
+    conn.commit()
+    conn.close()
+
+def remove_user_phone_number(user_id: str):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        DELETE FROM user_phone_number
+        WHERE user_id = ?
+    """, (user_id,))
     conn.commit()
     conn.close()
 
@@ -175,9 +210,11 @@ def check_if_user_send_phone_number(message: str, user_id: str, config: dict):
         # Send message to employee
         employees = get_employees()
         for employee in employees:
-            send_message_to_zalo(employee[0], message, config)
+            reply = "Sdt của khách cần tư vấn:" + match.group()
+            send_message_to_zalo(employee[0], reply, config)
         reply = "Cảm ơn bạn đã gửi số điện thoại, chúng tôi sẽ liên hệ với bạn sớm nhất"
         send_message_to_zalo(user_id, reply, config)
+        save_user_phone_number(user_id, match.group())
         return True
     return False
     
@@ -189,6 +226,7 @@ def check_if_user_send_admin_command(message: str, user_id: str, config: dict):
             reply += "#help: Hiển thị thông tin về các lệnh hỗ trợ\n"
             reply += "#nhanthongbaosdt: Nhận thông báo khi có khách để lại sdt\n"
             reply += "#huythongbaosdt: Huỷ nhận thông báo sdt"
+            reply += "#laytatcasdt: Lấy tất cả số điện thoại khách đã gửi"
             send_message_to_zalo(user_id, reply, config)
         elif commands[0] == '#nhanthongbaosdt':
             save_employee(user_id)
@@ -197,6 +235,12 @@ def check_if_user_send_admin_command(message: str, user_id: str, config: dict):
         elif commands[0] == '#huythongbaosdt':
             remove_employee(user_id)
             reply = "Đã huỷ nhận thông báo sdt"
+            send_message_to_zalo(user_id, reply, config)
+        elif commands[0] == '#laytatcasdt':
+            phone_numbers = get_user_phone_numbers()
+            reply = "Danh sách tất cả số điện thoại khách đã gửi:\n"
+            for phone_number in phone_numbers:
+                reply += phone_number[1] + "\n"
             send_message_to_zalo(user_id, reply, config)
         else:
             reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"

@@ -61,9 +61,7 @@ def worker():
         
         send_message_to_zalo(user_id, reply, config)
         msg_queue.task_done()
-
-
-
+        
 
 logger.info("Initialize queue")
 msg_queue = queue.Queue()
