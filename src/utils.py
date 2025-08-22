@@ -210,7 +210,7 @@ def check_if_user_send_phone_number(message: str, user_id: str, config: dict):
         # Send message to employee
         employees = get_employees()
         for employee in employees:
-            reply = "Sdt của khách cần tư vấn:" + match.group()
+            reply = "Sdt của khách cần tư vấn: " + match.group()
             send_message_to_zalo(employee[0], reply, config)
         reply = "Cảm ơn bạn đã gửi số điện thoại, chúng tôi sẽ liên hệ với bạn sớm nhất"
         send_message_to_zalo(user_id, reply, config)
@@ -225,8 +225,8 @@ def check_if_user_send_admin_command(message: str, user_id: str, config: dict):
             reply = "Bot hỗ trợ các lệnh sau:\n"
             reply += "#help: Hiển thị thông tin về các lệnh hỗ trợ\n"
             reply += "#nhanthongbaosdt: Nhận thông báo khi có khách để lại sdt\n"
-            reply += "#huythongbaosdt: Huỷ nhận thông báo sdt"
-            reply += "#laytatcasdt: Lấy tất cả số điện thoại khách đã gửi"
+            reply += "#huythongbaosdt: Huỷ nhận thông báo sdt\n"
+            reply += "#laytatcasdt: Lấy tất cả số điện thoại khách đã gửi\n"
             send_message_to_zalo(user_id, reply, config)
         elif commands[0] == '#nhanthongbaosdt':
             save_employee(user_id)
