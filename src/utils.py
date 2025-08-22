@@ -3,6 +3,7 @@ import requests
 from src.logger import logger
 import sqlite3
 from datetime import datetime
+import re
 
 DB_FILE = "threads.db"
 
