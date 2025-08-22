@@ -128,6 +128,7 @@ def get_user_phone_numbers():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("SELECT user_id, phone_number FROM user_phone_number")
+    conn.commit()
     rows = cursor.fetchall()
     conn.close()
     return rows
@@ -176,6 +177,7 @@ def get_employees():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("SELECT user_id FROM employees")
+    conn.commit()
     rows = cursor.fetchall()
     conn.close()
     return rows
@@ -199,6 +201,7 @@ def get_threads(user_id: str = None):
         cursor.execute("SELECT thread_id, user_id, time_created FROM threads WHERE user_id = ?", (user_id,))
     else:
         cursor.execute("SELECT thread_id, user_id, time_created FROM threads")
+    conn.commit()
     rows = cursor.fetchall()
     conn.close()
     return rows
