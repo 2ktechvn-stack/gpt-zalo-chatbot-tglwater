@@ -117,7 +117,7 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS user_phone_number (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT UNIQUE NOT NULL,
+            user_id TEXT NOT NULL,
             phone_number TEXT NOT NULL
         )
     """)
