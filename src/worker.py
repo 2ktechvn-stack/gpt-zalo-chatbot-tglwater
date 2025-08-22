@@ -23,12 +23,12 @@ def worker():
         if user_id is None:  # shutdown signal
             break
         
-        if check_if_user_send_admin_command(message, user_id, config):
+        if check_if_user_send_admin_command(text, user_id, config):
             logger.info("User send admin command")
             continue
 
         # Check if user send phone number
-        if check_if_user_send_phone_number(message, user_id, config):
+        if check_if_user_send_phone_number(text, user_id, config):
             logger.info("User send phone number")
             continue
 
