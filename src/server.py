@@ -34,10 +34,12 @@ def webhook():
             # Check for admin commands
             message = data['message']['text']
             if check_if_user_send_admin_command(message, user_id, config):
+                logger.info("User send admin command")
                 return 'OK', 200
 
             # Check if user send phone number
             if check_if_user_send_phone_number(user_id, message, config):
+                logger.info("User send phone number")
                 return 'OK', 200
 
             # Đem vào hàng chờ để đảm bảo thời gian phản hồi theo yêu cầu của Zalo
