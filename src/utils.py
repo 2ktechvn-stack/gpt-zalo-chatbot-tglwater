@@ -198,7 +198,7 @@ def save_thread(thread_id: str, user_id: str):
     cursor.execute("""
         INSERT INTO threads (thread_id, user_id, time_created)
         VALUES (?, ?, ?)
-    """, (thread_id, user_id, datetime.now() - timedelta(minutes=30).isoformat()))
+    """, (thread_id, user_id, (datetime.now() - timedelta(minutes=30)).isoformat()))
     conn.commit()
     conn.close()
 
