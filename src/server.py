@@ -30,13 +30,18 @@ def webhook():
             message = data['message']['text']
 
             # Đem vào hàng chờ để đảm bảo thời gian phản hồi theo yêu cầu của Zalo
-            msg_queue.put((user_id, message))
+            msg_queue.put((user_id, message, event_name))
             logger.info("Put message to queue")
         except Exception as e:
             logger.error(e)
             raise e
+    elif event_name == 'oa_send_text':
+        if 'admin_id' in data['sender']:
+            user_id = data['recipient']['id']
+            msg_queue.put((user_id, None, event_name))
+            logger.info("Put message to queue")
     else:
-        logger.info('Event name not in [user_send_text, anonymous_send_text]')
+        logger.info('Event name not in [user_send_text, anonymous_send_text, oa_send_text]')
 
     logger.info("Return 200 OK")
     return 'OK', 200

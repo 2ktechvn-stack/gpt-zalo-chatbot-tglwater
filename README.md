@@ -21,6 +21,7 @@ Installation:
 - cd /app
 - git clone https://github.com/2ktechvn-stack/gpt-zalo-chatbot-tglwater.git
 - cd gpt-zalo-chatbot-tglwater
+- <Copy config.yaml file to this folder>
 - pip install -r requirements.txt
 - cp chatbot.service to /etc/systemd/system
 - chgrp www-data /app

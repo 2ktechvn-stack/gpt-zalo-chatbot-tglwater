@@ -2,7 +2,7 @@ import yaml
 import requests
 from src.logger import logger
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 DB_FILE = "threads.db"
@@ -182,14 +182,23 @@ def get_employees():
     conn.close()
     return rows
 
+# Update time_created in threads table
+def update_time_created(user_id: str):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE threads SET time_created = ? WHERE user_id = ?", (datetime.now().isoformat(), user_id))
+    conn.commit()
+    conn.close()
+
 def save_thread(thread_id: str, user_id: str):
     """Insert a new thread into the database with current timestamp."""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
+    # Subtract time_created for 30 minutes
     cursor.execute("""
         INSERT INTO threads (thread_id, user_id, time_created)
         VALUES (?, ?, ?)
-    """, (thread_id, user_id, datetime.utcnow().isoformat()))
+    """, (thread_id, user_id, datetime.now() - timedelta(minutes=30).isoformat()))
     conn.commit()
     conn.close()
 
