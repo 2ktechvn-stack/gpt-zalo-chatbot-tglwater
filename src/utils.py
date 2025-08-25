@@ -239,23 +239,32 @@ def check_if_user_send_admin_command(message: str, user_id: str, config: dict):
             reply += "#nhanthongbaosdt: Nhận thông báo khi có khách để lại sdt\n"
             reply += "#huythongbaosdt: Huỷ nhận thông báo sdt\n"
             reply += "#laytatcasdt: Lấy tất cả số điện thoại khách đã gửi\n"
-            send_message_to_zalo(user_id, reply, config)
+            reply += "#stop_chat_when_interrupt_in <minutes>: Tắt chat khi nhân viên vào nhắn tin trong <minutes> phút\n"
         elif commands[0] == '#nhanthongbaosdt':
             save_employee(user_id)
             reply = "Đã bật nhận thông báo sdt"
-            send_message_to_zalo(user_id, reply, config)
         elif commands[0] == '#huythongbaosdt':
             remove_employee(user_id)
             reply = "Đã huỷ nhận thông báo sdt"
-            send_message_to_zalo(user_id, reply, config)
         elif commands[0] == '#laytatcasdt':
             phone_numbers = get_user_phone_numbers()
             reply = "Danh sách tất cả số điện thoại khách đã gửi:\n"
             for phone_number in phone_numbers:
                 reply += phone_number[1] + "\n"
-            send_message_to_zalo(user_id, reply, config)
+        elif commands[0] == '#stop_chat_when_interrupt_in':
+            if len(commands) != 2:
+                reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
+                return True
+            try:
+                minutes = int(commands[1])
+                config['STOP_CHAT_WHEN_INTERRUPT_IN'] = minutes
+                save_config(config)
+                reply = f"Đã tắt chat khi nhân viên vào nhắn tin trong {minutes} phút"
+            except ValueError:
+                reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
         else:
             reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
-            send_message_to_zalo(user_id, reply, config)
+            
+        send_message_to_zalo(user_id, reply, config)
         return True
     return False

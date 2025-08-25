@@ -23,17 +23,18 @@ def worker():
 
         if user_id is None:  # shutdown signal
             break
-        
-        if event_name == 'oa_send_text':
-            logger.info("Update time created")
-            update_time_created(user_id)
 
-        elif check_if_user_send_admin_command(text, user_id, config):
+        if check_if_user_send_admin_command(text, user_id, config):
             logger.info("User send admin command")
 
         # Check if user send phone number
         elif check_if_user_send_phone_number(text, user_id, config):
             logger.info("User send phone number")
+
+        # Check if employee send message
+        elif event_name == 'oa_send_text':
+            logger.info("Update time created")
+            update_time_created(user_id)
 
         # Call OpenAI
         else:
@@ -46,8 +47,8 @@ def worker():
                 
                 thread = get_threads(user_id)
 
-                # Search for time_created in threads database, if now - time_created <= 30 minutes, continue the loop
-                if datetime.now() - datetime.strptime(thread[0][2], '%Y-%m-%dT%H:%M:%S.%f') <= timedelta(minutes=30):
+                # Search for time_created in threads database, if now - time_created <= STOP_CHAT_WHEN_INTERRUPT_IN, continue the loop
+                if datetime.now() - datetime.strptime(thread[0][2], '%Y-%m-%dT%H:%M:%S.%f') <= timedelta(minutes=int(config['STOP_CHAT_WHEN_INTERRUPT_IN'])):
                     continue
 
                 # Get thread_id from database
