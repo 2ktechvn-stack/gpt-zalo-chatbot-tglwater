@@ -49,6 +49,7 @@ def worker():
 
                 # Search for time_created in threads database, if now - time_created <= STOP_CHAT_WHEN_INTERRUPT_IN, continue the loop
                 if datetime.now() - datetime.strptime(thread[0][2], '%Y-%m-%dT%H:%M:%S.%f') <= timedelta(minutes=int(config['STOP_CHAT_WHEN_INTERRUPT_IN'])):
+                    msg_queue.task_done()
                     continue
 
                 # Get thread_id from database
