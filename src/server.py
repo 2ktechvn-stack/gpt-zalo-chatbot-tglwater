@@ -21,10 +21,10 @@ def webhook():
             user_id = data['sender']['id']
 
             ### Only send to dev, remove in production ###
-            if user_id not in ['8174221521790538039', '2656106822398634139']:
-                logger.info("Return 200 OK")
-                return 'OK', 200
-            logger.info("user is dev")
+            # if user_id not in ['8174221521790538039', '2656106822398634139']:
+            #     logger.info("Return 200 OK")
+            #     return 'OK', 200
+            # logger.info("user is dev")
             ##############################################
             
             message = data['message']['text']
