@@ -4,6 +4,7 @@ from src.logger import logger
 from openai import OpenAI
 import re
 from datetime import datetime, timedelta
+import traceback
 
 def worker():
     '''
@@ -18,34 +19,35 @@ def worker():
     client = OpenAI(api_key=config['OPENAI_API_KEY'])
 
     while True:
-        user_id, text, event_name = msg_queue.get()
+        platform, user_id, text, event_name = msg_queue.get()
         logger.info('Get message from queue')
 
         if user_id is None:  # shutdown signal
             break
 
-        if check_if_user_send_admin_command(text, user_id, config):
+        if check_if_user_send_admin_command(platform, text, user_id, config):
             logger.info("User send admin command")
 
         # Check if user send phone number
-        elif check_if_user_send_phone_number(text, user_id, config):
+        elif check_if_user_send_phone_number(platform, text, user_id, config):
             logger.info("User send phone number")
 
         # Check if employee send message
         elif event_name == 'oa_send_text':
             logger.info("Update time created")
-            update_time_created(user_id)
+            update_time_created(platform, user_id)
 
         # Call OpenAI
         else:
             try:
                 # Check if user_id has in database, if not, create thread and insert
-                if not get_threads(user_id):
+                if not get_threads(user_id, platform):
                     thread = client.beta.threads.create()
                     logger.info(f"Create thread id {thread.id} for user {user_id}")
-                    save_thread(thread.id, user_id)
+                    save_thread(platform, thread.id, user_id)
                 
-                thread = get_threads(user_id)
+                thread = get_threads(user_id, platform)
+                logger.info(thread)
 
                 # Search for time_created in threads database, if now - time_created <= STOP_CHAT_WHEN_INTERRUPT_IN, continue the loop
                 if datetime.now() - datetime.strptime(thread[0][2], '%Y-%m-%dT%H:%M:%S.%f') <= timedelta(minutes=int(config['STOP_CHAT_WHEN_INTERRUPT_IN'])):
@@ -76,11 +78,14 @@ def worker():
                 # Normalize spaces (avoid double spaces after removal)
                 reply = re.sub(r"\s{2,}", " ", reply).strip()
 
+                if platform == 'zalo':
+                    send_message_to_zalo(user_id, reply, config)
+                elif platform == 'fb':
+                    send_message_to_fb(user_id, reply, config)
+
             except Exception as e:
-                reply = f"Error: {str(e)}"
-                logger.error(e)
-        
-            send_message_to_zalo(user_id, reply, config)
+                reply = traceback.format_exc()
+                logger.error(reply)
             
         msg_queue.task_done()
             

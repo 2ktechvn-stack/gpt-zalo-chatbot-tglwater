@@ -95,7 +95,37 @@ def send_message_to_zalo(user_id, reply, config):
             config = check_zalo_oa_token(config, refresh=True)
         else:
             break
-        
+
+def send_message_to_fb(user_id, reply, config):
+    logger.info("Send reply to " + user_id)
+    
+    headers = {
+        'Content-Type': 'application/json',
+    }
+
+    params = {
+        'access_token': config['FACEBOOK_TOKEN'],
+    }
+
+    json_data = {
+        'recipient': {
+            'id': user_id,
+        },
+        'messaging_type': 'RESPONSE',
+        'message': {
+            'text': reply,
+        },
+    }
+
+    response = requests.post(
+        f'https://graph.facebook.com/v23.0/{config["FACEBOOK_PAGE_ID"]}/messages',
+        params=params,
+        headers=headers,
+        json=json_data,
+    )
+    logger.info(response.status_code)
+    logger.info(response.content)
+
 def init_db():
     """Initialize the database and create table if not exists."""
     conn = sqlite3.connect(DB_FILE)
@@ -104,6 +134,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS threads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             thread_id TEXT NOT NULL,
+            platform TEXT NOT NULL,
             user_id TEXT NOT NULL,
             time_created TEXT NOT NULL
         )
@@ -183,39 +214,39 @@ def get_employees():
     return rows
 
 # Update time_created in threads table
-def update_time_created(user_id: str):
+def update_time_created(platform: str, user_id: str):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("UPDATE threads SET time_created = ? WHERE user_id = ?", (datetime.now().isoformat(), user_id))
+    cursor.execute("UPDATE threads SET time_created = ? WHERE user_id = ? AND platform = ?", (datetime.now().isoformat(), user_id, platform))
     conn.commit()
     conn.close()
 
-def save_thread(thread_id: str, user_id: str):
+def save_thread(platform: str, thread_id: str, user_id: str):
     """Insert a new thread into the database with current timestamp."""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     # Subtract time_created for 30 minutes
     cursor.execute("""
-        INSERT INTO threads (thread_id, user_id, time_created)
-        VALUES (?, ?, ?)
-    """, (thread_id, user_id, (datetime.now() - timedelta(minutes=30)).isoformat()))
+        INSERT INTO threads (platform, thread_id, user_id, time_created)
+        VALUES (?, ?, ?, ?)
+    """, (platform, thread_id, user_id, (datetime.now() - timedelta(minutes=30)).isoformat()))
     conn.commit()
     conn.close()
 
-def get_threads(user_id: str = None):
+def get_threads(user_id: str = None, platform: str = None):
     """Retrieve all threads, or only those belonging to a specific user."""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    if user_id:
-        cursor.execute("SELECT thread_id, user_id, time_created FROM threads WHERE user_id = ?", (user_id,))
+    if user_id and platform:
+        cursor.execute("SELECT thread_id, user_id, time_created, platform FROM threads WHERE user_id = ? AND platform = ?", (user_id, platform))
     else:
-        cursor.execute("SELECT thread_id, user_id, time_created FROM threads")
+        cursor.execute("SELECT thread_id, user_id, time_created, platform FROM threads")
     conn.commit()
     rows = cursor.fetchall()
     conn.close()
     return rows
 
-def check_if_user_send_phone_number(message: str, user_id: str, config: dict):
+def check_if_user_send_phone_number(platform: str, message: str, user_id: str, config: dict):
     phone_regex = re.compile(r"(?:\+84|(?:\+?840)|0)(3|5|7|8|9)(?:[\s\.\-]?\d){8}")
     match = phone_regex.search(message)
     if match:
@@ -225,12 +256,15 @@ def check_if_user_send_phone_number(message: str, user_id: str, config: dict):
             reply = "Sdt của khách cần tư vấn: " + match.group()
             send_message_to_zalo(employee[0], reply, config)
         reply = "Cảm ơn bạn đã gửi số điện thoại, chúng tôi sẽ liên hệ với bạn sớm nhất"
-        send_message_to_zalo(user_id, reply, config)
+        if platform == 'zalo':
+            send_message_to_zalo(user_id, reply, config)
+        elif platform == 'fb':
+            send_message_to_fb(user_id, reply, config)
         save_user_phone_number(user_id, match.group())
         return True
     return False
     
-def check_if_user_send_admin_command(message: str, user_id: str, config: dict):
+def check_if_user_send_admin_command(platform: str, message: str, user_id: str, config: dict):
     if message[0] == '#':
         commands = message.split(' ')
         if commands[0] == '#help':
@@ -265,6 +299,9 @@ def check_if_user_send_admin_command(message: str, user_id: str, config: dict):
         else:
             reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
             
-        send_message_to_zalo(user_id, reply, config)
+        if platform == 'zalo':
+            send_message_to_zalo(user_id, reply, config)
+        elif platform == 'fb':
+            send_message_to_fb(user_id, reply, config)
         return True
     return False
