@@ -361,43 +361,47 @@ def check_if_user_send_phone_number(platform: str, message: str, user_id: str, c
     return False
     
 def check_if_user_send_admin_command(platform: str, message: str, user_id: str, config: dict):
-    if message[0] == '#':
-        commands = message.split(' ')
-        if commands[0] == '#help':
-            reply = "Bot hỗ trợ các lệnh sau:\n"
-            reply += "#help: Hiển thị thông tin về các lệnh hỗ trợ\n"
-            reply += "#nhanthongbaosdt: Nhận thông báo khi có khách để lại sdt (Zalo only)\n"
-            reply += "#huythongbaosdt: Huỷ nhận thông báo sdt (Zalo only)\n"
-            reply += "#laytatcasdt: Lấy tất cả số điện thoại khách đã gửi\n"
-            reply += "#stop_chat_when_interrupt_in <minutes>: Tắt chat khi nhân viên vào nhắn tin trong <minutes> phút\n"
-        elif commands[0] == '#nhanthongbaosdt' and platform == 'zalo':
-            save_employee(user_id)
-            reply = "Đã bật nhận thông báo sdt"
-        elif commands[0] == '#huythongbaosdt' and platform == 'zalo':
-            remove_employee(user_id)
-            reply = "Đã huỷ nhận thông báo sdt"
-        elif commands[0] == '#laytatcasdt':
-            phone_numbers = get_user_phone_numbers()
-            reply = "Danh sách tất cả số điện thoại khách đã gửi:\n"
-            for phone_number in phone_numbers:
-                reply += phone_number[1] + "\n"
-        elif commands[0] == '#stop_chat_when_interrupt_in':
-            if len(commands) != 2:
+    try:
+        if message[0] == '#':
+            commands = message.split(' ')
+            if commands[0] == '#help':
+                reply = "Bot hỗ trợ các lệnh sau:\n"
+                reply += "#help: Hiển thị thông tin về các lệnh hỗ trợ\n"
+                reply += "#nhanthongbaosdt: Nhận thông báo khi có khách để lại sdt (Zalo only)\n"
+                reply += "#huythongbaosdt: Huỷ nhận thông báo sdt (Zalo only)\n"
+                reply += "#laytatcasdt: Lấy tất cả số điện thoại khách đã gửi\n"
+                reply += "#stop_chat_when_interrupt_in <minutes>: Tắt chat khi nhân viên vào nhắn tin trong <minutes> phút\n"
+            elif commands[0] == '#nhanthongbaosdt' and platform == 'zalo':
+                save_employee(user_id)
+                reply = "Đã bật nhận thông báo sdt"
+            elif commands[0] == '#huythongbaosdt' and platform == 'zalo':
+                remove_employee(user_id)
+                reply = "Đã huỷ nhận thông báo sdt"
+            elif commands[0] == '#laytatcasdt':
+                phone_numbers = get_user_phone_numbers()
+                reply = "Danh sách tất cả số điện thoại khách đã gửi:\n"
+                for phone_number in phone_numbers:
+                    reply += phone_number[1] + "\n"
+            elif commands[0] == '#stop_chat_when_interrupt_in':
+                if len(commands) != 2:
+                    reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
+                    return True
+                try:
+                    minutes = int(commands[1])
+                    config['STOP_CHAT_WHEN_INTERRUPT_IN'] = minutes
+                    save_config(config)
+                    reply = f"Đã tắt chat khi nhân viên vào nhắn tin trong {minutes} phút"
+                except ValueError:
+                    reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
+            else:
                 reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
-                return True
-            try:
-                minutes = int(commands[1])
-                config['STOP_CHAT_WHEN_INTERRUPT_IN'] = minutes
-                save_config(config)
-                reply = f"Đã tắt chat khi nhân viên vào nhắn tin trong {minutes} phút"
-            except ValueError:
-                reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
-        else:
-            reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
-            
-        if platform == 'zalo':
-            send_message_to_zalo(user_id, reply, config)
-        elif platform == 'fb':
-            send_message_to_fb(user_id, reply, config)
-        return True
-    return False
+                
+            if platform == 'zalo':
+                send_message_to_zalo(user_id, reply, config)
+            elif platform == 'fb':
+                send_message_to_fb(user_id, reply, config)
+            return True
+    except Exception as e:
+        reply = traceback.format_exc()
+        logger.error(reply)
+        return False
