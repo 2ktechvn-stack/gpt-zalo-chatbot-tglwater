@@ -4,6 +4,7 @@ from src.logger import logger
 import sqlite3
 from datetime import datetime, timedelta
 import re
+import traceback
 
 DB_FILE = "threads.db"
 
@@ -16,7 +17,7 @@ def load_config():
         logger.info("Loaded successfully!")
         return config
     except Exception as e:
-        logger.error(e)
+        logger.error(traceback.format_exc())
         raise e
 
 def load_remind_script():
@@ -28,7 +29,7 @@ def load_remind_script():
         logger.info("Loaded successfully!")
         return remind_script
     except Exception as e:
-        logger.error(e)
+        logger.error(traceback.format_exc())
         raise e
 
 def save_config(config):
@@ -39,7 +40,7 @@ def save_config(config):
             yaml.dump(config, outfile, default_flow_style=False)
         logger.info("Saved successfully!")
     except Exception as e:
-        logger.error(e)
+        logger.error(traceback.format_exc())
         raise e
 
 def get_zalo_oa_token(config):
@@ -59,7 +60,7 @@ def get_zalo_oa_token(config):
         logger.info(response.content)
         return response.json()
     except Exception as e:
-        logger.error(e)
+        logger.error(traceback.format_exc())
         raise e
 
 def check_zalo_oa_token(config, refresh=True):

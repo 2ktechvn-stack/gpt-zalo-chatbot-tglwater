@@ -3,6 +3,7 @@ import threading
 from src.worker import worker, msg_queue, load_config
 from src.utils import *
 from src.logger import logger
+import traceback
 
 # Chạy worker trong process riêng
 threading.Thread(target=worker, daemon=True).start()
