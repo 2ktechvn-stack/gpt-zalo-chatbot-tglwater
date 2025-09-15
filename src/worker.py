@@ -83,13 +83,16 @@ def worker():
 
         elif event_name == 'fb_echo':
             # Check if recent_reply_message_id != mid
-            logger.info('FB echo')
-            recent_reply_message_id = get_recent_reply_message_id(platform, user_id)
-            if recent_reply_message_id != mid:
-                logger.info('Update time created')
-                update_time_created(platform, user_id)
-            else:
-                logger.info('Do nothing')
+            try:
+                logger.info('FB echo')
+                recent_reply_message_id = get_recent_reply_message_id(platform, user_id)
+                if recent_reply_message_id != mid:
+                    logger.info('Update time created')
+                    update_time_created(platform, user_id)
+                else:
+                    logger.info('Do nothing')
+            except Exception as e:
+                logger.error(traceback.format_exc())
 
         elif event_name == 'remind':
             try:
