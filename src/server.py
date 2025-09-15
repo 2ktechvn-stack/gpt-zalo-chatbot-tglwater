@@ -31,7 +31,7 @@ def webhook():
             message = data['message']['text']
 
             # Đem vào hàng chờ để đảm bảo thời gian phản hồi theo yêu cầu của Zalo
-            msg_queue.put(('zalo', user_id, message, event_name))
+            msg_queue.put(('zalo', user_id, message, event_name, None))
             logger.info("Put message to queue")
         except Exception as e:
             logger.error(e)
@@ -39,7 +39,7 @@ def webhook():
     elif event_name == 'oa_send_text':
         if 'admin_id' in data['sender']:
             user_id = data['recipient']['id']
-            msg_queue.put(('zalo', user_id, None, event_name))
+            msg_queue.put(('zalo', user_id, None, event_name, None))
             logger.info("Put message to queue")
     else:
         logger.info('Event name not in [user_send_text, anonymous_send_text, oa_send_text]')
@@ -59,25 +59,30 @@ def authorize_zalo():
 def fb_webhook():
     data = request.get_json()
     logger.info(data)
-    user_id = data['entry'][0]['messaging'][0]['sender']['id']
-    message = data['entry'][0]['messaging'][0]['message']['text']
+    message = None
+    mid = data['entry'][0]['messaging'][0]['message']['mid']
 
-    if 'is_echo' in data['entry'][0]['messaging'][0] and data['entry'][0]['messaging'][0]['is_echo']:
-        event_name = 'oa_send_text'
-    elif 'is_echo' not in data['entry'][0]['messaging'][0]:
+    if 'is_echo' in data['entry'][0]['messaging'][0]['message']:
+        event_name = 'fb_echo'
+        user_id = data['entry'][0]['messaging'][0]['recipient']['id']
+    elif 'is_echo' not in data['entry'][0]['messaging'][0]['message']:
         event_name = 'user_send_text'
+        user_id = data['entry'][0]['messaging'][0]['sender']['id']
+        message = data['entry'][0]['messaging'][0]['message']['text']
     else:
         event_name = None
 
+    logger.info(event_name)
+
     ### Only send to dev, remove in production ###
-    if user_id not in ['9362337113891359']:
+    if user_id not in ['9362337113891359', '6539779106135592'] and event_name == 'user_send_text':
         logger.info("Return 200 OK")
         return 'OK', 200
     logger.info("user is dev")
     ##############################################
 
     if event_name:
-        msg_queue.put(('fb', user_id, message, event_name))
+        msg_queue.put(('fb', user_id, message, event_name, mid))
         logger.info("Put message to queue")
     return 'OK', 200
 

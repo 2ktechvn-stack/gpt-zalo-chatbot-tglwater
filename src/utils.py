@@ -19,6 +19,18 @@ def load_config():
         logger.error(e)
         raise e
 
+def load_remind_script():
+    # Load YAML file
+    logger.info("Loading remind script")
+    try:
+        with open("remind_script.yaml", "r") as f:
+            remind_script = yaml.safe_load(f)
+        logger.info("Loaded successfully!")
+        return remind_script
+    except Exception as e:
+        logger.error(e)
+        raise e
+
 def save_config(config):
     # Write YAML file
     logger.info('Saving config')
@@ -126,6 +138,8 @@ def send_message_to_fb(user_id, reply, config):
     logger.info(response.status_code)
     logger.info(response.content)
 
+    return response.json()['message_id']
+
 def init_db():
     """Initialize the database and create table if not exists."""
     conn = sqlite3.connect(DB_FILE)
@@ -136,7 +150,8 @@ def init_db():
             thread_id TEXT NOT NULL,
             platform TEXT NOT NULL,
             user_id TEXT NOT NULL,
-            time_created TEXT NOT NULL
+            time_created TEXT NOT NULL,
+            recent_reply_message_id TEXT NULL
         )
     """)
     cursor.execute("""
@@ -152,6 +167,71 @@ def init_db():
             phone_number TEXT NOT NULL
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS customer_last_interaction (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            platform TEXT NOT NULL,
+            time TEXT NOT NULL,
+            count INTEGER NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def insert_customer_last_interaction(user_id: str, platform: str):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO customer_last_interaction (user_id, platform, time, count)
+        VALUES (?, ?, ?, ?)
+    """, (user_id, platform, datetime.now().isoformat(), 0))
+    conn.commit()
+    conn.close()
+
+def update_customer_last_interaction(user_id: str, platform: str, count: int = 0):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    if count == 0:
+        cursor.execute("""
+            UPDATE customer_last_interaction
+            SET time = ?, count = 0
+            WHERE user_id = ? AND platform = ?
+        """, (datetime.now().isoformat(), user_id, platform))
+    else:
+        cursor.execute("""
+            UPDATE customer_last_interaction
+            SET count = ?
+            WHERE user_id = ? AND platform = ?
+        """, (count, user_id, platform))
+    conn.commit()
+    conn.close()
+
+def get_customer_last_interaction(user_id: str, platform: str):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id, platform, time, count FROM customer_last_interaction WHERE user_id = ? AND platform = ?", (user_id, platform))
+    conn.commit()
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+def get_all_customer_last_interaction():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id, platform, time, count FROM customer_last_interaction")
+    conn.commit()
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+def delete_customer_last_interaction(user_id: str, platform: str):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        DELETE FROM customer_last_interaction
+        WHERE user_id = ? AND platform = ?
+    """, (user_id, platform))
     conn.commit()
     conn.close()
 
@@ -221,6 +301,22 @@ def update_time_created(platform: str, user_id: str):
     conn.commit()
     conn.close()
 
+def update_recent_reply_message_id(platform: str, user_id: str, recent_reply_message_id: str):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE threads SET recent_reply_message_id = ? WHERE user_id = ? AND platform = ?", (recent_reply_message_id, user_id, platform))
+    conn.commit()
+    conn.close()
+
+def get_recent_reply_message_id(platform: str, user_id: str):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT recent_reply_message_id FROM threads WHERE user_id = ? AND platform = ?", (user_id, platform))
+    conn.commit()
+    row = cursor.fetchone()
+    conn.close()
+    return row[0]
+
 def save_thread(platform: str, thread_id: str, user_id: str):
     """Insert a new thread into the database with current timestamp."""
     conn = sqlite3.connect(DB_FILE)
@@ -270,14 +366,14 @@ def check_if_user_send_admin_command(platform: str, message: str, user_id: str, 
         if commands[0] == '#help':
             reply = "Bot hỗ trợ các lệnh sau:\n"
             reply += "#help: Hiển thị thông tin về các lệnh hỗ trợ\n"
-            reply += "#nhanthongbaosdt: Nhận thông báo khi có khách để lại sdt\n"
-            reply += "#huythongbaosdt: Huỷ nhận thông báo sdt\n"
+            reply += "#nhanthongbaosdt: Nhận thông báo khi có khách để lại sdt (Zalo only)\n"
+            reply += "#huythongbaosdt: Huỷ nhận thông báo sdt (Zalo only)\n"
             reply += "#laytatcasdt: Lấy tất cả số điện thoại khách đã gửi\n"
             reply += "#stop_chat_when_interrupt_in <minutes>: Tắt chat khi nhân viên vào nhắn tin trong <minutes> phút\n"
-        elif commands[0] == '#nhanthongbaosdt':
+        elif commands[0] == '#nhanthongbaosdt' and platform == 'zalo':
             save_employee(user_id)
             reply = "Đã bật nhận thông báo sdt"
-        elif commands[0] == '#huythongbaosdt':
+        elif commands[0] == '#huythongbaosdt' and platform == 'zalo':
             remove_employee(user_id)
             reply = "Đã huỷ nhận thông báo sdt"
         elif commands[0] == '#laytatcasdt':
