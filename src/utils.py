@@ -350,7 +350,7 @@ def check_if_user_send_phone_number(platform: str, message: str, user_id: str, c
         # Send message to employee
         employees = get_employees()
         for employee in employees:
-            reply = "Sdt của khách cần tư vấn: " + match.group()
+            reply = f"Sdt của khách cần tư vấn ({platform}): " + match.group()
             send_message_to_zalo(employee[0], reply, config)
         reply = "Cảm ơn bạn đã gửi số điện thoại, chúng tôi sẽ liên hệ với bạn sớm nhất"
         if platform == 'zalo':
