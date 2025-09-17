@@ -13,6 +13,9 @@ app = Flask(__name__)
 # Webhook for Zalo
 @app.route("/", methods=['POST'])
 def webhook():
+    '''
+        Webhook endpoint của Zalo
+    '''
     # Nhận user id và tin nhắn
     data = request.get_json()
     logger.info(data)
@@ -60,6 +63,9 @@ def authorize_zalo():
 # Webhook for Facebook
 @app.route('/webhook', methods=['POST'])
 def fb_webhook():
+    '''
+        Webhook endpoint của Facebook
+    '''
     try:
         data = request.get_json()
         logger.info(data)
@@ -94,6 +100,9 @@ def fb_webhook():
 
 @app.route('/webhook', methods=['GET'])
 def fb_webhook_verify():
+    '''
+        Method để verify theo yêu cầu của Facebook
+    '''
     data = request.args
     mode = data.get('hub.mode')
     challenge = data.get('hub.challenge')

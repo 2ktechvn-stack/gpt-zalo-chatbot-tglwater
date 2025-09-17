@@ -344,6 +344,9 @@ def get_threads(user_id: str = None, platform: str = None):
     return rows
 
 def check_if_user_send_phone_number(platform: str, message: str, user_id: str, config: dict):
+    '''
+        Khi người mua gửi tin nhắn có chứa số điện thoại, filter ra sdt, gửi tin nhắn xác nhận
+    '''
     phone_regex = re.compile(r"(?:\+84|(?:\+?840)|0)(3|5|7|8|9)(?:[\s\.\-]?\d){8}")
     match = phone_regex.search(message)
     if match:
@@ -352,12 +355,18 @@ def check_if_user_send_phone_number(platform: str, message: str, user_id: str, c
         for employee in employees:
             reply = f"Sdt của khách cần tư vấn ({platform}): " + match.group()
             send_message_to_zalo(employee[0], reply, config)
-        reply = "Cảm ơn bạn đã gửi số điện thoại, chúng tôi sẽ liên hệ với bạn sớm nhất"
+        reply = "Cám ơn A/c ! A/c để ý sđt lạ nhé, bô phận chuyên môn bên em sẽ liên hệ sớm ạ."
         if platform == 'zalo':
             send_message_to_zalo(user_id, reply, config)
         elif platform == 'fb':
             send_message_to_fb(user_id, reply, config)
         save_user_phone_number(user_id, match.group())
+
+        try:
+            delete_customer_last_interaction(user_id, platform)
+        except:
+            logger.error(traceback.format_exc())
+            
         return True
     return False
     

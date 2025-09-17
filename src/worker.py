@@ -54,7 +54,7 @@ def remind_customer(config, remind_script):
 
 def worker():
     '''
-        Worker that processes waiting message
+        Worker để xử lý các tin nhắn trong hàng chờ
     '''
 
     config = load_config()
