@@ -79,10 +79,10 @@ def fb_webhook():
         logger.info(event_name)
 
         ### Only send to dev, remove in production ###
-        if user_id not in ['9362337113891359', '6539779106135592'] and event_name == 'user_send_text':
-            logger.info("Return 200 OK")
-            return 'OK', 200
-        logger.info("user is dev")
+        # if user_id not in ['9362337113891359', '6539779106135592'] and event_name == 'user_send_text':
+        #     logger.info("Return 200 OK")
+        #     return 'OK', 200
+        # logger.info("user is dev")
         ##############################################
 
         if event_name:
