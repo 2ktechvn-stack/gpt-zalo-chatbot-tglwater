@@ -180,6 +180,15 @@ def init_db():
     conn.commit()
     conn.close()
 
+def get_user_phone_number(user_id):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id, phone_number FROM user_phone_number WHERE user_id = ?", (user_id,))
+    conn.commit()
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
 def insert_customer_last_interaction(user_id: str, platform: str):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()

@@ -108,6 +108,11 @@ def worker():
                     thread = client.beta.threads.create()
                     logger.info(f"Create thread id {thread.id} for user {user_id}")
                     save_thread(platform, thread.id, user_id)
+
+                # Check if user_id in user_phone_number, if not continue, else task done
+                if get_user_phone_number(user_id):
+                    msg_queue.task_done()
+                    continue
                 
                 # Check if user_id has in customer_last_interaction, if not, insert
                 if not get_customer_last_interaction(user_id, platform):
