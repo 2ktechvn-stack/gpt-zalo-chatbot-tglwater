@@ -20,9 +20,9 @@ def remind_customer(config, remind_script):
             if count == 2 and datetime.now() - datetime.strptime(time, '%Y-%m-%dT%H:%M:%S.%f') >= timedelta(hours=23):
                 logger.info('Send 1 day remind to ' + user_id + ' - ' + platform)
                 # Send message 1 day
-                if platform == 'zalo':
+                if platform == 'zalo' and config['REMINDER_ON']:
                     send_message_to_zalo(user_id, remind_script['remind_1_day'], config)
-                elif platform == 'fb':
+                elif platform == 'fb' and config['REMINDER_ON']:
                     send_message_to_fb(user_id, remind_script['remind_1_day'], config)
                 
                 # update_customer_last_interaction(user_id, platform, 3)
@@ -31,9 +31,9 @@ def remind_customer(config, remind_script):
             elif count == 1 and datetime.now() - datetime.strptime(time, '%Y-%m-%dT%H:%M:%S.%f') >= timedelta(hours=4):
                 logger.info('Send 4 hours remind to ' + user_id + ' - ' + platform)
                 # Send message 4 hours
-                if platform == 'zalo':
+                if platform == 'zalo' and config['REMINDER_ON']:
                     send_message_to_zalo(user_id, remind_script['remind_4_hours'], config)
-                elif platform == 'fb':
+                elif platform == 'fb' and config['REMINDER_ON']:
                     send_message_to_fb(user_id, remind_script['remind_4_hours'], config)
 
                 update_customer_last_interaction(user_id, platform, 2)
@@ -41,9 +41,9 @@ def remind_customer(config, remind_script):
             elif count == 0 and datetime.now() - datetime.strptime(time, '%Y-%m-%dT%H:%M:%S.%f') >= timedelta(hours=1):
                 logger.info('Send 30 minutes remind to ' + user_id + ' - ' + platform)
                 # Send message 30 minutes
-                if platform == 'zalo':
+                if platform == 'zalo' and config['REMINDER_ON']:
                     send_message_to_zalo(user_id, remind_script['remind_1_hour'], config)
-                elif platform == 'fb':
+                elif platform == 'fb' and config['REMINDER_ON']:
                     send_message_to_fb(user_id, remind_script['remind_1_hour'], config)
 
                 update_customer_last_interaction(user_id, platform, 1)
@@ -115,9 +115,10 @@ def worker():
                     continue
                 
                 # Check if user_id has in customer_last_interaction, if not, insert
-                if not get_customer_last_interaction(user_id, platform):
+                customer_last_interaction = get_customer_last_interaction(user_id, platform)
+                if not customer_last_interaction and config['REMINDER_ON']:
                     insert_customer_last_interaction(user_id, platform)
-                else:
+                elif customer_last_interaction and config['REMINDER_ON']:
                     update_customer_last_interaction(user_id, platform)
                 
                 thread = get_threads(user_id, platform)
