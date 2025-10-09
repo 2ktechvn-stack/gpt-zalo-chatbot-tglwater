@@ -180,6 +180,15 @@ def init_db():
     conn.commit()
     conn.close()
 
+def get_user_phone_number(user_id):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id, phone_number FROM user_phone_number WHERE user_id = ?", (user_id,))
+    conn.commit()
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
 def insert_customer_last_interaction(user_id: str, platform: str):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
@@ -381,6 +390,8 @@ def check_if_user_send_admin_command(platform: str, message: str, user_id: str, 
                 reply += "#huythongbaosdt: Huỷ nhận thông báo sdt (Zalo only)\n"
                 reply += "#laytatcasdt: Lấy tất cả số điện thoại khách đã gửi\n"
                 reply += "#stop_chat_when_interrupt_in <minutes>: Tắt chat khi nhân viên vào nhắn tin trong <minutes> phút\n"
+                reply += "#reminder_on: Bật thông báo nhắc nhở\n"
+                reply += "#reminder_off: Tắt thông báo nhắc nhở\n"
             elif commands[0] == '#nhanthongbaosdt' and platform == 'zalo':
                 save_employee(user_id)
                 reply = "Đã bật nhận thông báo sdt"
@@ -403,6 +414,14 @@ def check_if_user_send_admin_command(platform: str, message: str, user_id: str, 
                     reply = f"Đã tắt chat khi nhân viên vào nhắn tin trong {minutes} phút"
                 except ValueError:
                     reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
+            elif commands[0] == '#reminder_on':
+                config['REMINDER_ON'] = True
+                save_config(config)
+                reply = "Đã bật thông báo nhắc nhở"
+            elif commands[0] == '#reminder_off':
+                config['REMINDER_ON'] = False
+                save_config(config)
+                reply = "Đã tắt thông báo nhắc nhở"
             else:
                 reply = "Lệnh không hợp lệ, gõ #help để xem các lệnh"
                 

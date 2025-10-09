@@ -114,6 +114,22 @@ def fb_webhook_verify():
         return challenge, 200
     return 403
 
+@app.route('/webhook_tectonic', methods=['GET'])
+def fb_webhook_verify_tectonic():
+    '''
+        Method để verify theo yêu cầu của Facebook dành cho Tectonic
+    '''
+    data = request.args
+    mode = data.get('hub.mode')
+    challenge = data.get('hub.challenge')
+    verify_token = data.get('hub.verify_token')
+    logger.info(mode)
+    logger.info(challenge)
+    logger.info(verify_token)
+    if mode == 'subscribe' and verify_token == 'tectonic':
+        return challenge, 200
+    return 403
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)
 
