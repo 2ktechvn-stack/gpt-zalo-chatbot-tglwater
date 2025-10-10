@@ -148,7 +148,7 @@ def worker():
                 message_content = messages[0].content[0].text
 
                 reply = message_content.value
-                reply = re.sub(r"\s*\[\d+\]\s*", " ", reply)
+                reply = re.sub(r"【\S*】", " ", reply)
 
                 # Normalize spaces (avoid double spaces after removal)
                 reply = re.sub(r"\s{2,}", " ", reply).strip()
