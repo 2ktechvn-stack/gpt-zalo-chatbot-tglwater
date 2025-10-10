@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 import threading
 from src.worker import worker, msg_queue, load_config
 from src.utils import *
@@ -9,6 +9,11 @@ import traceback
 threading.Thread(target=worker, daemon=True).start()
 
 app = Flask(__name__)
+
+# Host images
+@app.route('/product_image/<path>')
+def product_image(path):
+    return send_file(f'images/{path}')
 
 # Webhook for Zalo
 @app.route("/", methods=['POST'])
