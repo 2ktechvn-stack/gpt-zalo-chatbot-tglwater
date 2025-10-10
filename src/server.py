@@ -13,7 +13,7 @@ app = Flask(__name__)
 # Host images
 @app.route('/product_image/<path>')
 def product_image(path):
-    return send_file(f'images/{path}')
+    return send_file(f'../images/{path}')
 
 # Webhook for Zalo
 @app.route("/", methods=['POST'])
